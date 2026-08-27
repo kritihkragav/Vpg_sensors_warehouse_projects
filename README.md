@@ -1,4 +1,6 @@
-# SMART FG Warehouse Monitoring System
+# VPG Sensors Warehouse Monitoring System
+
+IoT-based Smart Warehouse Monitoring System integrating Load Cell and HX711 for real-time weight measurement, microcontroller-based data acquisition, IoT communication, and a web-based dashboard for inventory monitoring, data visualization, and intelligent warehouse management.
 
 Monitor Finished Goods inventory racks using VPG Load Cells and Raspberry Pi.
 
@@ -13,7 +15,6 @@ Monitor Finished Goods inventory racks using VPG Load Cells and Raspberry Pi.
 ## Quick Start
 
 ```bash
-cd warehouse_monitor
 pip install -r requirements.txt
 python app.py
 ```
