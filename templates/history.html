@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory History - SMART FG Warehouse{% endblock %}
+{% block page_title %}Inventory History{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-funnel"></i> Search &amp; Filter</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('history') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Search Rack ID</label>
+                <input type="text" class="form-control" id="search" name="search"
+                       value="{{ filters.search }}" placeholder="e.g. R001">
+            </div>
+            <div class="col-md-3">
+                <label for="rack_id" class="form-label">Filter by Rack</label>
+                <select class="form-select" id="rack_id" name="rack_id">
+                    <option value="">All Racks</option>
+                    {% for rack in all_racks %}
+                    <option value="{{ rack.rack_id }}" {% if filters.rack_id == rack.rack_id %}selected{% endif %}>
+                        {{ rack.rack_id }} - {{ rack.product_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="date_from" class="form-label">Date From</label>
+                <input type="date" class="form-control" id="date_from" name="date_from"
+                       value="{{ filters.date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label for="date_to" class="form-label">Date To</label>
+                <input type="date" class="form-control" id="date_to" name="date_to"
+                       value="{{ filters.date_to }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+                <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Inventory Records</h5>
+        <span class="badge bg-secondary">{{ records|length }} records</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Rack ID</th>
+                        <th>Weight (kg)</th>
+                        <th>Current Quantity</th>
+                        <th>Dispatched Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in records %}
+                    <tr>
+                        <td>{{ rec.timestamp }}</td>
+                        <td><strong>{{ rec.rack_id }}</strong></td>
+                        <td>{{ rec.weight }}</td>
+                        <td>{{ rec.current_quantity }}</td>
+                        <td>{{ rec.dispatched_quantity }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            No records found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

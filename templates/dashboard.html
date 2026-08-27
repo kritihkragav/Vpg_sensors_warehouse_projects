@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - SMART FG Warehouse{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <span class="badge bg-success" id="liveIndicator">
+            <i class="bi bi-broadcast"></i> LIVE
+        </span>
+        <small class="text-muted ms-2">Auto-refresh every 5 seconds</small>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <form method="POST" action="{{ url_for('generate_demo_data') }}" class="d-inline">
+            <button type="submit" class="btn btn-warning btn-sm">
+                <i class="bi bi-database-add"></i> Generate Demo Data
+            </button>
+        </form>
+        <a href="{{ url_for('export_inventory') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download"></i> Export Inventory CSV
+        </a>
+        <a href="{{ url_for('export_dispatch') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download"></i> Export Dispatch CSV
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4" id="kpiCards">
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+            <div class="kpi-info">
+                <h3 id="kpi-total-racks">{{ data.kpis.total_racks }}</h3>
+                <p>Total Racks</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-green">
+            <div class="kpi-icon"><i class="bi bi-boxes"></i></div>
+            <div class="kpi-info">
+                <h3 id="kpi-total-inventory">{{ data.kpis.total_inventory }}</h3>
+                <p>Total Inventory</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-orange">
+            <div class="kpi-icon"><i class="bi bi-truck"></i></div>
+            <div class="kpi-info">
+                <h3 id="kpi-total-dispatched">{{ data.kpis.total_dispatched }}</h3>
+                <p>Total Dispatched</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-red">
+            <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="kpi-info">
+                <h3 id="kpi-low-stock">{{ data.kpis.low_stock_alerts }}</h3>
+                <p>Low Stock Alerts</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Cards -->
+<div id="alertContainer">
+    {% for rack in data.racks %}
+        {% if rack.status == 'critical' %}
+        <div class="alert alert-danger alert-card d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+            <div>
+                <strong>CRITICAL ALERT:</strong> Rack {{ rack.rack_id }} ({{ rack.product_name }})
+                — Only {{ rack.current_quantity }} units remaining!
+            </div>
+        </div>
+        {% elif rack.status == 'low' %}
+        <div class="alert alert-warning alert-card d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+                <strong>LOW STOCK:</strong> Rack {{ rack.rack_id }} ({{ rack.product_name }})
+                — {{ rack.current_quantity }} units remaining
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<!-- Inventory Table -->
+<div class="card table-card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table"></i> Live Inventory Status</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>Rack ID</th>
+                        <th>Product Name</th>
+                        <th>Initial Qty</th>
+                        <th>Current Qty</th>
+                        <th>Dispatched Qty</th>
+                        <th>Current Weight (kg)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    {% for rack in data.racks %}
+                    <tr>
+                        <td><strong>{{ rack.rack_id }}</strong></td>
+                        <td>{{ rack.product_name }}</td>
+                        <td>{{ rack.initial_quantity }}</td>
+                        <td>{{ rack.current_quantity }}</td>
+                        <td>{{ rack.dispatched_quantity }}</td>
+                        <td>{{ rack.current_weight }}</td>
+                        <td>
+                            {% if rack.status == 'normal' %}
+                            <span class="status-badge status-normal">Normal</span>
+                            {% elif rack.status == 'low' %}
+                            <span class="status-badge status-low">Low Stock</span>
+                            {% else %}
+                            <span class="status-badge status-critical">Critical</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No racks configured. Add racks or generate demo data.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

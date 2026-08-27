@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - SMART FG Warehouse{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-graph-up"></i> Inventory Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="inventoryTrendChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-truck"></i> Dispatch Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dispatchTrendChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Rack Utilization (%)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="utilizationChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const trendData = {{ trend_data | tojson }};
+
+const chartColors = {
+    primary: '#1a3a5c',
+    secondary: '#2c6faa',
+    success: '#28a745',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    gray: '#6c757d',
+};
+
+const defaultOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: true, position: 'top' },
+    },
+    scales: {
+        y: { beginAtZero: true, grid: { color: '#e9ecef' } },
+        x: { grid: { display: false } },
+    },
+};
+
+const invLabels = trendData.inventory_trend.map(d => d.date);
+const invValues = trendData.inventory_trend.map(d => d.total_qty);
+
+new Chart(document.getElementById('inventoryTrendChart'), {
+    type: 'line',
+    data: {
+        labels: invLabels,
+        datasets: [{
+            label: 'Total Inventory',
+            data: invValues,
+            borderColor: chartColors.secondary,
+            backgroundColor: 'rgba(44, 111, 170, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: chartColors.primary,
+        }],
+    },
+    options: defaultOptions,
+});
+
+const dispLabels = trendData.dispatch_trend.map(d => d.date);
+const dispValues = trendData.dispatch_trend.map(d => d.total_dispatched);
+
+new Chart(document.getElementById('dispatchTrendChart'), {
+    type: 'line',
+    data: {
+        labels: dispLabels,
+        datasets: [{
+            label: 'Total Dispatched',
+            data: dispValues,
+            borderColor: chartColors.warning,
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: chartColors.warning,
+        }],
+    },
+    options: defaultOptions,
+});
+
+const utilLabels = trendData.utilization.map(d => d.rack_id);
+const utilValues = trendData.utilization.map(d => d.utilization);
+
+new Chart(document.getElementById('utilizationChart'), {
+    type: 'bar',
+    data: {
+        labels: utilLabels,
+        datasets: [{
+            label: 'Utilization %',
+            data: utilValues,
+            backgroundColor: utilValues.map(v =>
+                v < 30 ? chartColors.danger :
+                v < 60 ? chartColors.warning : chartColors.success
+            ),
+            borderRadius: 6,
+            borderSkipped: false,
+        }],
+    },
+    options: {
+        ...defaultOptions,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: '#e9ecef' },
+                ticks: { callback: v => v + '%' },
+            },
+            x: { grid: { display: false } },
+        },
+    },
+});
+</script>
+{% endblock %}
